@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRee$</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .weather {
+            display: flex;
+            align-items: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .weather-icon {
+            margin-right: 0.5rem;
+        }
+
+        .widgets {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .widget {
+            width: 100px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .widget-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .widget:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Weather Section -->
+    <div class="weather">
+        <span class="weather-icon">🌧️</span>
+        <span class="temperature">24°C</span>
+    </div>
+
+    <!-- Widgets Section -->
+    <div class="widgets">
+        <a href="https://drive.filen.io" class="widget">
+            <div class="widget-icon">🗂️</div>
+            <div class="widget-label">Filen</div>
+        </a>
+        <a href="https://files.psu.ru" class="widget">
+            <div class="widget-icon">☂️</div>
+            <div class="widget-label">PSU</div>
+        </a>
+        <a href="https://hidan.co" class="widget">
+            <div class="widget-icon">📦</div>
+            <div class="widget-label">Hidan</div>
+        </a>
+        <a href="https://postimages.org" class="widget">
+            <div class="widget-icon">🖼️</div>
+            <div class="widget-label">PostImages</div>
+        </a>
+    </div>
+
+    <script>
+        async function updateWeather() {
+            const apiKey = '6e87652a54e3d4b4d5754d15807849dc';  // Substitua com sua chave da API
+            const city = 'São Benedito do Sul'; // Você pode trocar por outra cidade ou usar a geolocalização
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=pt_br`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const temperature = data.main.temp;
+                const iconCode = data.weather[0].icon;
+
+                // Atualizar a temperatura
+                document.querySelector('.temperature').textContent = `${temperature}°C`;
+
+                // Trocar o ícone do clima
+                const weatherIcon = document.querySelector('.weather-icon');
+                weatherIcon.innerHTML = getWeatherIcon(iconCode);
+            } catch (error) {
+                console.error('Erro ao obter os dados do clima:', error);
+            }
+        }
+
+        // Função para trocar o emoji baseado no ícone do clima
+        function getWeatherIcon(iconCode) {
+            switch(iconCode) {
+                case '01d': return '☀️'; // Claro durante o dia
+                case '01n': return '🌙'; // Claro durante a noite
+                case '02d': return '🌤️'; // Parcialmente nublado durante o dia
+                case '02n': return '🌑'; // Parcialmente nublado durante a noite
+                case '03d': 
+                case '03n': return '☁️'; // Nuvens
+                case '04d': 
+                case '04n': return '🌥️'; // Nuvens densas
+                case '09d': 
+                case '09n': return '🌧️'; // Chuva
+                case '10d': 
+                case '10n': return '🌦️'; // Chuva e sol
+                case '11d': 
+                case '11n': return '⚡'; // Tempestade
+                case '13d': 
+                case '13n': return '❄️'; // Neve
+                case '50d': 
+                case '50n': return '🌫️'; // Neblina
+                default: return '🌈'; // Caso não tenha o ícone, um ícone de chuva
+            }
+        }
+
+        // Chamar a função quando a página carregar
+        window.onload = updateWeather;
+    </script>
+</body>
+</html>
