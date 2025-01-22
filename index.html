@@ -18,10 +18,15 @@
             font-family: Arial, sans-serif;
         }
 
+        .time {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
         .weather {
             display: flex;
             align-items: center;
-            font-size: 2rem;
+            font-size: 1.5rem;
             margin-bottom: 2rem;
         }
 
@@ -56,16 +61,35 @@
         .widget:hover {
             background-color: #333;
         }
+
+        .search-bar {
+            margin-bottom: 2rem;
+            width: 80%;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <!-- Weather Section -->
-    <div class="weather">
-        <span class="weather-icon">🌧️</span>
-        <span class="temperature">24°C</span>
+    <div class="time">Carregando horário...</div>
+
+    <div class="search-bar">
+        <input type="text" placeholder="Pesquisar na web..." autofocus>
     </div>
 
-    <!-- Widgets Section -->
+    <div class="weather">
+        <span class="weather-icon">🌧️</span>
+        <span class="temperature">Obtendo clima...</span>
+    </div>
+
     <div class="widgets">
         <a href="https://drive.filen.io" class="widget">
             <div class="widget-icon">🗂️</div>
@@ -86,54 +110,75 @@
     </div>
 
     <script>
+        // Atualiza o horário em tempo real
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.querySelector('.time').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Atualiza o clima com base na localização do usuário
         async function updateWeather() {
-            const apiKey = '6e87652a54e3d4b4d5754d15807849dc';  // Substitua com sua chave da API
-            const city = 'São Benedito do Sul'; // Você pode trocar por outra cidade ou usar a geolocalização
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=pt_br`;
+            const apiKey = '6e87652a54e3d4b4d5754d15807849dc'; // Substitua pela sua chave da API
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric&lang=pt_br`;
 
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const temperature = data.main.temp;
-                const iconCode = data.weather[0].icon;
+                    try {
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        const temperature = Math.round(data.main.temp); // Arredonda a temperatura
+                        const iconCode = data.weather[0].icon;
 
-                // Atualizar a temperatura
-                document.querySelector('.temperature').textContent = `${temperature}°C`;
+                        // Atualiza a temperatura
+                        document.querySelector('.temperature').textContent = `${temperature}°C - ${data.name}`;
 
-                // Trocar o ícone do clima
-                const weatherIcon = document.querySelector('.weather-icon');
-                weatherIcon.innerHTML = getWeatherIcon(iconCode);
-            } catch (error) {
-                console.error('Erro ao obter os dados do clima:', error);
+                        // Troca o ícone do clima
+                        const weatherIcon = document.querySelector('.weather-icon');
+                        weatherIcon.innerHTML = getWeatherIcon(iconCode);
+                    } catch (error) {
+                        console.error('Erro ao obter os dados do clima:', error);
+                        document.querySelector('.temperature').textContent = 'Erro ao obter clima.';
+                    }
+                }, (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    document.querySelector('.temperature').textContent = 'Localização não disponível.';
+                });
+            } else {
+                console.error('Geolocalização não suportada pelo navegador.');
+                document.querySelector('.temperature').textContent = 'Geolocalização não suportada.';
             }
         }
 
-        // Função para trocar o emoji baseado no ícone do clima
+        // Define ícones baseados no código do clima
         function getWeatherIcon(iconCode) {
-            switch(iconCode) {
-                case '01d': return '☀️'; // Claro durante o dia
-                case '01n': return '🌙'; // Claro durante a noite
-                case '02d': return '🌤️'; // Parcialmente nublado durante o dia
-                case '02n': return '🌑'; // Parcialmente nublado durante a noite
-                case '03d': 
-                case '03n': return '☁️'; // Nuvens
-                case '04d': 
-                case '04n': return '🌥️'; // Nuvens densas
-                case '09d': 
-                case '09n': return '🌧️'; // Chuva
-                case '10d': 
-                case '10n': return '🌦️'; // Chuva e sol
-                case '11d': 
-                case '11n': return '⚡'; // Tempestade
-                case '13d': 
-                case '13n': return '❄️'; // Neve
-                case '50d': 
-                case '50n': return '🌫️'; // Neblina
-                default: return '🌈'; // Caso não tenha o ícone, um ícone de chuva
+            switch (iconCode) {
+                case '01d': return '☀️';
+                case '01n': return '🌙';
+                case '02d': return '🌤️';
+                case '02n': return '🌑';
+                case '03d':
+                case '03n': return '☁️';
+                case '04d':
+                case '04n': return '🌥️';
+                case '09d':
+                case '09n': return '🌧️';
+                case '10d':
+                case '10n': return '🌦️';
+                case '11d':
+                case '11n': return '⚡';
+                case '13d':
+                case '13n': return '❄️';
+                case '50d':
+                case '50n': return '🌫️';
+                default: return '🌈';
             }
         }
 
-        // Chamar a função quando a página carregar
+        // Atualiza o clima ao carregar a página
         window.onload = updateWeather;
     </script>
 </body>
